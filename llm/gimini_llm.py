@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
-from config import Config
 from langchain_core.messages import HumanMessage
+from config import Config
 
 load_dotenv()
 
@@ -14,7 +14,7 @@ class GeminiLLM:
         
         self.model_name = Config.LLM_MODEL
         self.temperature = Config.TEMPERATURE
-        self.gemini_client = self._initailize_client()
+        self.gemini_client = self._initialize_client()
 
     def _initialize_client(self):
         return ChatGoogleGenerativeAI(
