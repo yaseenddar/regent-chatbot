@@ -22,7 +22,7 @@ class DocumentChunker:
         return hashlib.md5(text.encode('utf-8')).hexdigest()
     
     def split_documents(self,docs:List[Document]) -> List[dict]:
-        """Split and duplicacte documents. Returns list of dicts woth id, text, metadata."""
+        """Split and duplicacte documents. Returns list of dicts with id, text, metadata."""
         chunks = self.splitter.split_documents(docs)
         result = []
 

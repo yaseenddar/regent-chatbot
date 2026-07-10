@@ -38,3 +38,6 @@ class Config:
     TEMPERATURE = 0.7
 
     SESSION_ID = "chatbot_user"
+
+if __name__ == "__main__":
+    print(Config.DATA_DIR)
