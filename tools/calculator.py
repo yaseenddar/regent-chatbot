@@ -1,51 +1,46 @@
 import math
-
-from pydantic import BaseModel
 import numexpr
-from tools.base_tool import BaseTool
+from langchain_core.tools import tool
 
-class Calculator(BaseTool):
-    def __init__(self):
-        super().__init__(
-            name="calculator",
-            description=(
-            "A tool that can perform mathematical calculations. "
-            "before calling convert natural langguage to proper Pyhton-stype math exxpresssions."
-            "Example: '2+2','532432 * 5','2**4','pi * 2**2', 42343**(1/5)'."
-            "Supports constants like pi and e."
-        ))
-        self.local_dict={"pi":math.pi,"e":math.e}
+from pydantic import BaseModel, Field
+from langchain_core.tools import tool
 
-    def run(self,query:str) -> str:
-        """
-        Evaluate a mathematical expression provided numexpr
-        """
 
-        if not query or not query.strip():
-            return "Expression cannot be empty."
-        
-        try:
-            result = numexpr.evaluate(
-                query.strip(),
-                global_dict={},
-                local_dict = self.local_dict
-            )
-            return str(result.item()) if hasattr(result,"item") else str(result)
-        except Exception as e:
-            return f"Error Evaluating expresssion: {str(e)}"
+class CalculatorInput(BaseModel):
+    expression: str = Field(
+        description="Python-style mathematical expression, e.g. '2**5' or 'pi*2**2'"
+    )
 
-    def __str__(self):
-        return f"Tool Name: {self.name}\nDescription: {self.description}"
-# fir standalone testing
+
+@tool(args_schema=CalculatorInput)
+def calculator(expression: str) -> str:
+    """
+    Evaluate a Python-style mathematical expression.
+    Supports constants: pi and e.
+
+    Examples:
+    - 2+2
+    - 532432 * 5
+    - 2**4
+    - pi * 2**2
+    - 42343**(1/5)
+    """
+    if not expression or not expression.strip():
+        return "Expression cannot be empty."
+
+    try:
+        result = numexpr.evaluate(
+            expression.strip(),
+            global_dict={},
+            local_dict={"pi": math.pi, "e": math.e},
+        )
+        return str(result.item()) if hasattr(result, "item") else str(result)
+    except Exception as e:
+        return f"Error evaluating expression: {e}"
+
 
 if __name__ == "__main__":
-    calculator = Calculator()
-    test_expressions = [
-        '2+3',
-        "32534 * 4",
-        '5435 + (4*3)',
-        'e**3'
-    ]
+    tools = [calculator]
 
-    for exp in test_expressions:
-        print(f"Expression: {exp} => Result: {calculator.run(exp)}")
+    print(calculator.invoke("2+3"))
+    print(calculator.invoke("pi * 2**2"))
