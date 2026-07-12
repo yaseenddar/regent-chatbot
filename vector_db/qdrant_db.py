@@ -33,20 +33,25 @@ load_dotenv()
 class QdrantDBClient:
     def __init__(self):
         self.collection_name = Config.COLLECTION_NAME
-        # self.client = QdrantClient(url=os.getenv('QDRANT_URL'), api_key=os.getenv('QDRANT_API_KEY'))  # Qdrant - Cloud
-        self.client = QdrantClient(path=Config.QDRANT_PERSIST_PATH)  # Qdrant - Local
+        self.client = QdrantClient(url=os.getenv('QDRANT_URL'), api_key=os.getenv('QDRANT_API_KEY'))  # Qdrant - Cloud
+        # self.client = QdrantClient(path=Config.QDRANT_PERSIST_PATH)  # Qdrant - Local
         # self.client = QdrantClient(url=os.getenv('QDRANT_URL'), api_key=os.getenv('QDRANT_API_KEY'))  # Qdrant - Cloud
         #self.client = QdrantClient(path=Config.QDRANT_PERSIST_PATH)  # Qdrant - Local
         self.embedder = BAAIEmbedder()
         self.chunker = DocumentChunker()
         self.normalizer = Normalizer()
         self.nltk = NLTK()
+        count = self.client.count(
+            collection_name=self.collection_name,
+            exact=True
+        )
 
+        print("Points in collection:", count.count)
         if not self.client.collection_exists(self.collection_name):
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=VectorParams(
-                    size=self.embedder.model.get_sentence_embedding_dimension(),
+                    size=self.embedder.model.get_embedding_dimension(),
                     distance=Distance.COSINE
                 )
             )
@@ -154,11 +159,12 @@ class QdrantDBClient:
     def insert_chunks(self,chunk_dicts:List[dict]):
         seen_hashes = set()
         all_points = []
-
+        print("_____________0 0 0 0 00 0 IIIIIIIIIIIIIIIIIIIIInnnnnnnnnnnnnnnn")
         texts = [self.normalizer.normalize_text(d["text"]) for d in chunk_dicts]
         embeddings = self.embedder.embed_documents(texts)
 
         for i, chunk in enumerate(chunk_dicts):
+            print("IIIIIIIIIIIIIIIIiii ",i)
             text = self.normalizer.normalize_text(chunk["text"])
 
             chunk_hash = self.hash_text(text)
@@ -360,7 +366,7 @@ if __name__ == "__main__":
     qdrant_db_client.export_all_documents()
     #qdrant_db_client.clear_qdrant_db()
 
-    query = "What is the full form of K12HSN?"
+    query = "TECHNICAL SKILLS?"
     docs = qdrant_db_client.search(query)
     print(f"\n### Retrieved {len(docs)} results:")
     for i, doc in enumerate(docs, 1):
